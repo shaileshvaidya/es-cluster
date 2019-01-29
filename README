@@ -1,0 +1,9 @@
+Required: ansible 2.7.1
+
+Setup Elasticsearch cluster on provided nodes.
+Servers from 'master-node' will be considerd as Masters and servers from 'data-node' group will be considerd as Data nodes.
+Kibana will be installed on first master node.
+Used zen discovery method for Elasticsearch cluster management. 
+
+
+

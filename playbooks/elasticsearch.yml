@@ -1,0 +1,20 @@
+---
+- name: Create Elasticearch Master Nodes
+  hosts: tag_es-master-c3
+  remote_user: "{{ remote_user_name }}"
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/site_vars.yml
+  roles:
+    - es-master
+
+- name: Create Elasticearch Data Nodes
+  hosts: tag_es-data-c3
+  remote_user: "{{ remote_user_name }}"
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/site_vars.yml
+  roles:
+    - es-data

@@ -1,0 +1,171 @@
+---
+- name: Disable SELinux
+  selinux:
+    state: disabled
+
+- name: Disable firewalld
+  service:
+    name: firewalld
+    enabled: false
+
+# Download software
+- name: Download JDK 8
+  gc_storage:
+    bucket: "dr-software-bucket"
+    region: "US"
+    object: jdk-8u181-linux-x64.rpm
+    dest: /root/jdk-8u181-linux-x64.rpm
+    mode: get
+    gs_access_key: "{{ gs_access_key }}"
+    gs_secret_key: "{{ gs_secret_key }}"
+
+- name: Download Elasticsearch
+  gc_storage:
+    bucket: "dr-software-bucket"
+    region: "US"
+    object: elasticsearch-5.6.13.rpm
+    dest: /root/elasticsearch-5.6.13.rpm
+    mode: get
+    gs_access_key: "{{ gs_access_key }}"
+    gs_secret_key: "{{ gs_secret_key }}"
+
+- name: Download Kibana
+  gc_storage:
+    bucket: "dr-software-bucket"
+    region: "US"
+    object: kibana-5.6.13-x86_64.rpm
+    dest: /root/kibana-5.6.13-x86_64.rpm
+    mode: get
+    gs_access_key: "{{ gs_access_key }}"
+    gs_secret_key: "{{ gs_secret_key }}"
+
+- name: Download Elasticsearch Plugins
+  gc_storage: bucket={{ item.bucket }} region={{ item.region }} object={{ item.object }} dest={{ item.dest }} mode={{ item.mode }} gs_access_key={{ item.gs_access_key }} gs_secret_key={{ item.gs_secret_key }}
+  with_items:
+    - { bucket: 'dr-software-bucket', region: 'US', object: 'x-pack-5.6.13.zip', dest: '/root/x-pack-5.6.13.zip', mode: 'get', gs_access_key: "{{ gs_access_key }}", gs_secret_key: "{{ gs_secret_key }}" }
+    - { bucket: 'dr-software-bucket', region: 'US', object: 'discovery-gce-5.6.13.zip', dest: '/root/discovery-gce-5.6.13.zip', mode: 'get', gs_access_key: "{{ gs_access_key }}", gs_secret_key: "{{ gs_secret_key }}" }
+    - { bucket: 'dr-software-bucket', region: 'US', object: 'repository-gcs-5.6.13.zip', dest: '/root/repository-gcs-5.6.13.zip', mode: 'get', gs_access_key: "{{ gs_access_key }}", gs_secret_key: "{{ gs_secret_key }}" }
+
+# Install RPM 
+- name: Install Java 8 from local file
+  yum: name=/root/jdk-8u181-linux-x64.rpm 
+
+- name: Install Elasticsearch
+  yum: name=/root/elasticsearch-5.6.13.rpm
+
+- name: Install Kibana
+  yum: name=/root/kibana-5.6.13-x86_64.rpm
+
+# Configure systemd
+- name: Update elasticsearch pre-exec
+  copy:
+    src: roles/es-master/files/bin/elasticsearch-systemd-pre-exec
+    dest: /usr/share/elasticsearch/bin/elasticsearch-systemd-pre-exec
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Update elasticsearch.service
+  copy:
+    src: roles/es-master/files/system/elasticsearch.service
+    dest: /usr/lib/systemd/system/elasticsearch.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install Elasticsearch Plugins
+  elasticsearch_plugin: name={{ item.name }} state={{ item.state }} src={{ item.src }} force={{ item.force }}
+  with_items:
+    - { name: 'x-pack', state: 'present', src: 'file:///root/x-pack-5.6.13.zip', force: 'yes' }
+    - { name: 'discovery-gce', state: 'present' , src: 'file:///root/discovery-gce-5.6.13.zip', force: 'yes' }
+    - { name: 'repository-gcs', state: 'present' , src: 'file:///root/repository-gcs-5.6.13.zip', force: 'yes' }
+
+#- name: Install X-Pack Plugin for Kibana
+#  kibana_plugin:
+#    name: x-pack
+#    plugin_bin: /usr/share/kibana/bin/kibana-plugin
+#    plugin_dir: /usr/share/kibana/plugins/
+#    url: file:///root/x-pack-5.6.13.zip
+#    state: present
+#    force: yes
+
+- name: Create Elasticsearch Systemd Override Directory
+  file:
+    path: /etc/systemd/system/elasticsearch.service.d/
+    state: directory
+    owner: root
+    group: root
+
+- name: Install Elasticsearch systemd override
+  copy:
+    src: roles/es-master/files/elasticsearch.service.d/override.conf
+    dest: /etc/systemd/system/elasticsearch.service.d/override.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create Directories
+  file:
+    path: /data/elasticsearch
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: 0750
+
+- name: Elasticsearch Configurations
+  template: src={{ item.src }} dest={{ item.dest }} owner={{ item.owner }} group={{ item.group }} mode={{ item.mode }}
+  with_items:
+    - { src: 'roles/es-master/templates/elasticsearch.yml.template', dest: '/etc/elasticsearch/elasticsearch.yml', owner: 'elasticsearch', group: 'elasticsearch', mode: '0644' }
+    - { src: 'roles/es-master/templates/jvm.options.template', dest: '/etc/elasticsearch/jvm.options', owner: 'elasticsearch', group: 'elasticsearch', mode: '0644' }
+    - { src: 'roles/es-master/templates/x-pack/log4j2.properties.template', dest: '/etc/elasticsearch/x-pack/log4j2.properties', owner: 'elasticsearch', group: 'elasticsearch', mode: '0644' }
+
+- name: Kibana Configurations
+  template: 
+    src: roles/es-master/templates/kibana.yml.template
+    dest: /etc/kibana/kibana.yml
+    owner: kibana
+    group: kibana
+    mode: 0644
+
+- name: Create Kibana Directories
+  file:
+    path: /var/log/kibana
+    state: directory
+    owner: kibana
+    group: kibana
+    mode: 0750
+
+
+- name: Set PAM Limits
+  pam_limits: domain={{ item.domain }} limit_type={{ item.limit_type }} limit_item={{ item.limit_item }} value={{ item.value }}
+  with_items: 
+    - { domain: 'elasticsearch', limit_type: 'soft', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'elasticsearch', limit_type: 'hard', limit_item: 'memlock', value: 'unlimited' }
+    - { domain: 'elasticsearch', limit_type: 'soft', limit_item: 'nproc', value: '2048' }
+    - { domain: 'elasticsearch', limit_type: 'hard', limit_item: 'nproc', value: '2048' }
+    - { domain: 'elasticsearch', limit_type: 'soft', limit_item: 'nofile', value: '65535' }
+    - { domain: 'elasticsearch', limit_type: 'hard', limit_item: 'nofile', value: '65535' }
+
+# Enable Services. Kibana seems to not supporte "reloaded" so it is a seperate task
+- name: Enable Elasticsearch Service
+  systemd: 
+    name: elasticsearch
+    enabled: yes
+    masked: no
+
+- name: Enable Kibana Service
+  systemd: 
+    name: kibana
+    enabled: yes
+    masked: no
+
+
+# Remove downloaded packages
+- name: Clean Up Files
+  file: path={{ item.path }} state={{ item.state }}
+  with_items:
+    - { path: '/root/elasticsearch-5.6.13.rpm', state: 'absent' }
+    - { path: '/root/kibana-5.6.13-x86_64.rpm', state: 'absent' }
+    - { path: '/root/x-pack-5.6.13.zip', state: 'absent' }
+    - { path: '/root/discovery-gce-5.6.13.zip', state: 'absent' }
+    - { path: '/root/repository-gcs-5.6.13.zip', state: 'absent' }

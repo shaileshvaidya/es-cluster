@@ -1,0 +1,22 @@
+appender.audit_rolling.type = RollingFile
+appender.audit_rolling.name = audit_rolling
+appender.audit_rolling.fileName = ${sys:es.logs.base_path}${sys:file.separator}${sys:es.logs.cluster_name}_access.log
+appender.audit_rolling.layout.type = PatternLayout
+appender.audit_rolling.layout.pattern = [%d{ISO8601}] %m%n
+appender.audit_rolling.filePattern = ${sys:es.logs.base_path}${sys:file.separator}${sys:es.logs.cluster_name}_access-%d{yyyy-MM-dd}.log
+appender.audit_rolling.policies.type = Policies
+appender.audit_rolling.policies.time.type = TimeBasedTriggeringPolicy
+appender.audit_rolling.policies.time.interval = 1
+appender.audit_rolling.policies.time.modulate = true
+
+logger.xpack_security_audit_logfile.name = org.elasticsearch.xpack.security.audit.logfile.LoggingAuditTrail
+logger.xpack_security_audit_logfile.level = info
+logger.xpack_security_audit_logfile.appenderRef.audit_rolling.ref = audit_rolling
+logger.xpack_security_audit_logfile.additivity = false
+
+# Quash some of the x-pack/kibana noise in the audit log
+# See: https://discuss.elastic.co/t/kibana-automatic-activity-is-flooding-audit-log/79413
+appender.audit_rolling.filter.regex.type = RegexFilter
+appender.audit_rolling.filter.regex.onMatch = DENY
+appender.audit_rolling.filter.regex.onMisMatch = ACCEPT
+appender.audit_rolling.filter.regex.regex = .*principal=.kibana...action=.cluster:monitor.*|.*action=.cluster:admin.*|.*action=.cluster:monitor.*|.*indices=..kibana.,.*|.*indices=..\*.,.*|.*principal=.elastic...action=.indices:data/read/mget.*|.*principal=._xpack_security.,.*|.*principal=.kibana.,.action=.indices:data/read/mget.,.*

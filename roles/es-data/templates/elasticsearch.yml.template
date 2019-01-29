@@ -1,0 +1,36 @@
+# The Data Cluster
+cluster.name: {{ cluster_name }}
+
+# node info
+node.name: ${HOSTNAME}
+node.master: false
+node.data: true
+
+# Network bind address: all interfaces
+network.host: _site_
+
+transport.tcp.port: 9300
+
+# http settings
+http:
+  port: 9200
+  max_content_length: {{ max_content_length }}
+
+# Lock process memory in RAM
+bootstrap.memory_lock: true
+
+discovery.zen.ping.unicast.hosts: [{{ groups['master-node'] | map("regex_replace", "(.*)", "'\\1'") | join(",") }}]
+
+# X-Pack security
+xpack:
+  security:
+    audit:
+      enabled: true
+      logfile.events.exclude: anonymous_access_denied
+
+# Set up zone awareness
+#cluster.routing.allocation.awareness.attributes: zone
+
+# Hot/Warm - This is a "hot" node
+#node.attr.box_type: hot
+

@@ -1,0 +1,7 @@
+path_data: /data/elasticsearch
+max_content_length: 300mb
+bootstrap_memory_lock: true
+maximum_java_heap: 4G
+minimum_java_heap: 4G
+xpack_auth_user: elastic
+xpack_auth_password: changeme

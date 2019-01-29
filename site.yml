@@ -1,0 +1,35 @@
+---
+# Required: ansible 2.7.1
+#  - elasticsearch_plugin required "force"
+#
+
+- name: Create Elasticearch Master
+  hosts: master-node
+  remote_user: "{{ remote_user_name }}"
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/site_vars.yml
+  roles:
+    - es-master
+
+- name: Create Elasticsearch Data
+  hosts: data-node
+  remote_user: "{{ remote_user_name }}"
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/site_vars.yml
+  roles:
+    - es-data
+
+- name: Install synthesys
+  hosts: app-node
+  remote_user: "{{ remote_user_name }}"
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vars/site_vars.yml
+  roles:
+    - es-data
+    - app-server
