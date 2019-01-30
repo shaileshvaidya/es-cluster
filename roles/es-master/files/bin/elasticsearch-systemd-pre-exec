@@ -6,6 +6,4 @@ if [ ! -z "$CONF_FILE" ]; then
     exit 1
 fi
 HOME=/var/log/elasticsearch
-GCP_ZONE=`gcloud compute instances list --filter="name= ( \`uname -n\` ...)"|awk 'NR == 2 { print $2 }'`
-/usr/bin/bash -c "/usr/bin/systemctl set-environment GCP_ZONE=${GCP_ZONE}"
 
