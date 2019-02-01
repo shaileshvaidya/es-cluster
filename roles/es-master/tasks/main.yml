@@ -9,34 +9,35 @@
     enabled: false
   register: firewalld_service_result
   failed_when: "firewalld_service_result is failed and 'Could not find the requested service' not in firewalld_service_result.msg" 
-
-- name: Copy JDK 8, Elasticsearch and Kibana rpms.
-  copy:
-    src: "{{ item }}"
-    dest: /root/
-    owner: root
-    group: root
-    mode: 0644
-  with_fileglob:
-    - src/elasticsearch/*    
-  
+     
+- name: Download x-pack plugin
+  get_url:
+    url: "http://{{ groups['local-repo'][0] }}/{{ repo_endpoint }}/x-pack-5.6.14.zip"
+    dest: /root/   
+    
+    
+- name: Add repository
+  yum_repository:
+    name: local-repo
+    description: local repository for elasticsearch
+    baseurl: http://{{ groups['local-repo'][0] }}/{{ repo_endpoint }}/
+    gpgcheck: no
+    
 # Install RPM 
 - name: Install Java 8 from local file
-  yum: name=/root/jdk-8u201-linux-x64.rpm 
+  yum: 
+    name: jdk
+    state: present    
 
 - name: Install Elasticsearch
-  yum: name=/root/elasticsearch-5.6.14.rpm
-
+  yum: 
+    name: elasticsearch
+    state: present
+    
 - name: Install Kibana
-  yum: name=/root/kibana-5.6.14-x86_64.rpm
-
-- name: Update elasticsearch.service
-  copy:
-    src: roles/es-master/files/system/elasticsearch.service
-    dest: /usr/lib/systemd/system/elasticsearch.service
-    owner: root
-    group: root
-    mode: 0644
+  yum: 
+    name: kibana
+    state: present
 
 - name: Install Elasticsearch Plugins
   elasticsearch_plugin: name={{ item.name }} state={{ item.state }} src={{ item.src }} force={{ item.force }}

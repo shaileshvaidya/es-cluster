@@ -1,0 +1,14 @@
+project: wipro-poc
+remote_user_name: ansibledev
+cluster_name: wipro-dev
+elastic_stack_version: 5.6.14
+path_data: /data/elasticsearch
+max_content_length: 300mb
+bootstrap_memory_lock: true
+maximum_java_heap: 15G
+minimum_java_heap: 15G
+xpack_auth_user: elastic
+xpack_auth_password: changeme
+xpack_monitoring_elasticsearch_username:  kibana
+xpack_monitoring_elasticsearch_password:  changeme
+repo_endpoint: synthrepo

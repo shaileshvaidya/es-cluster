@@ -3,15 +3,6 @@
 #  - elasticsearch_plugin required "force"
 #
 
-- name: create local repo
-  hosts: local-repo
-  remote_user: "{{ remote_user_name }}"
-  become: yes
-  become_method: sudo
-  roles:
-    - local-repo
-
-
 - name: Create Elasticearch Master
   hosts: master-node
   remote_user: "{{ remote_user_name }}"
@@ -27,4 +18,3 @@
   become_method: sudo
   roles:
     - es-data
-

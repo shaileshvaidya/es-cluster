@@ -1,0 +1,71 @@
+---
+# tasks file for local-repo
+
+#Install http, createrepo rpms
+
+- name: clean all
+  shell: yum update all;yum clean all
+   
+- name: Install required rpms
+  yum: 
+    name:
+      - httpd
+      - createrepo
+    state: present
+
+#create required directory
+
+- name: create directory
+  file: 
+    path: "{{ repo_dir }}"
+    state: directory
+  
+#Download Elasticsearch and Kibana rpm.
+
+- name: Download elasticsearch rpm
+  get_url:
+    url: "{{ elastic_stack_download_url }}/elasticsearch/elasticsearch-{{ elastic_stack_version }}.rpm"
+    dest: "{{ repo_dir }}"
+    
+
+- name: Download kibana rpm
+  get_url:
+    url: "{{ elastic_stack_download_url }}/kibana/kibana-{{ elastic_stack_version }}-x86_64.rpm"
+    dest: "{{ repo_dir }}"   
+
+- name: Download x-pack plugin
+  get_url:
+    url: "{{ elastic_stack_download_url }}/packs/x-pack/x-pack-{{ elastic_stack_version }}.zip"
+    dest: "{{ repo_dir }}"
+    
+#Download jdk rpm
+
+- name: download oracle jdk rpm
+  get_url:
+    url: "{{ jdkurl }}"
+    dest: "{{ repo_dir }}"
+    validate_certs: no
+    headers : "Cookie: oraclelicense=accept-securebackup-cookie"
+
+#Execute create repo
+
+- name: create repo metadate 
+  shell: /bin/createrepo "{{ repo_dir }}"
+
+- name: Create symbolic link 
+  file:
+    src: "{{ repo_dir }}"
+    dest: /var/www/html/{{ repo_endpoint }}
+    state: link
+
+
+#create repo file.
+
+- name: Add repository
+  yum_repository:
+    name: local-repo
+    description: local repository for elasticsearch
+    baseurl: http://{{ inventory_hostname }}/{{ repo_endpoint }}/
+
+
+#copy repo file on all machiens
