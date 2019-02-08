@@ -21,6 +21,8 @@ bootstrap.memory_lock: true
 
 discovery.zen.ping.unicast.hosts: [{{ groups['master-node'] | map("regex_replace", "(.*)", "'\\1'") | join(",") }}]
 
+discovery.zen.minimum_master_nodes: {{ groups['master-node'] | length }}
+
 action.auto_create_index: true
 thread_pool.bulk.queue_size: 1000
 

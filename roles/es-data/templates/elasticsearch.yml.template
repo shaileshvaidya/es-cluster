@@ -21,6 +21,9 @@ bootstrap.memory_lock: true
 
 discovery.zen.ping.unicast.hosts: [{{ groups['master-node'] | map("regex_replace", "(.*)", "'\\1'") | join(",") }}]
 
+discovery.zen.minimum_master_nodes: {{ groups['master-node'] | length }}
+
+
 # X-Pack security
 xpack:
   security:

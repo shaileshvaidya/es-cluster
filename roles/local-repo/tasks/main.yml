@@ -3,8 +3,10 @@
 
 #Install http, createrepo rpms
 
-- name: clean all
-  shell: yum update all;yum clean all
+- name: yum-clean-metadata
+  command: yum clean metadata
+  args:
+    warn: no
    
 - name: Install required rpms
   yum: 
@@ -58,7 +60,11 @@
     dest: /var/www/html/{{ repo_endpoint }}
     state: link
 
-
+- name: start httpds 
+  service:
+    name: httpd
+    state: started    
+    
 #create repo file.
 
 - name: Add repository
