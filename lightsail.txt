@@ -1,3 +1,7 @@
 code added at lightsail
 
+<<<<<<< HEAD
 code added again at lightsail
+=======
+code added at master
+>>>>>>> master
