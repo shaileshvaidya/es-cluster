@@ -4,4 +4,9 @@ code added at lightsail
 code added again at lightsail
 =======
 code added at master
+<<<<<<< HEAD
+>>>>>>> master
+=======
+
+code added at master again
 >>>>>>> master
