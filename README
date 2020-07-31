@@ -10,5 +10,5 @@ Steps:
 1. Create instances for data-node, master-node with 15G of memory
 2. Setup passwordless ssh from your system to all the nodes for user ansible
 3. Configure inventory/inventory.txt with appropriate node details. 
-3. Executr 'ansible-playbook-2 site.yml -i inventory/inventory.txt'
+3. Execute 'ansible-playbook-2 site.yml -i inventory/inventory.txt'
 
