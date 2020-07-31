@@ -1,6 +1,6 @@
 project: local-poc
-remote_user_name: ansibledev
-cluster_name: wipro-dev
+remote_user_name: root
+cluster_name: dev
 elastic_stack_version: 5.6.14
 path_data: /data/elasticsearch
 max_content_length: 300mb

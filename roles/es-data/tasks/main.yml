@@ -1,4 +1,9 @@
 ---
+- name: Install libselinux-python
+  yum:
+    name: libselinux-python
+    state: present
+
 - name: Disable SELinux
   selinux:
     state: disabled
@@ -26,7 +31,7 @@
 # Install RPM 
 - name: Install Java 8
   yum: 
-    name: jdk
+    name: java-1.8.0-openjdk
     state: present    
 
 - name: Install Elasticsearch

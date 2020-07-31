@@ -1,4 +1,10 @@
 ---
+
+- name: Install libselinux-python
+  yum:
+    name: libselinux-python
+    state: present
+
 - name: Disable SELinux
   selinux:
     state: disabled
@@ -15,10 +21,17 @@
     url: "http://{{ groups['local-repo'][0] }}/{{ repo_endpoint }}/x-pack-5.6.14.zip"
     dest: /root/   
 
+- name: Add repository
+  yum_repository:
+    name: local-repo
+    description: local repository for elasticsearch
+    baseurl: http://{{ groups['local-repo'][0] }}/{{ repo_endpoint }}/
+    gpgcheck: no
+
 # Install RPM 
 - name: Install Java 8 
   yum: 
-    name: jdk
+    name: java-1.8.0-openjdk
     state: present    
 
 - name: Install Elasticsearch
@@ -42,12 +55,6 @@
   register: cmd_out
   failed_when: cmd_out.rc != 1 and cmd_out.rc != 0
  
-- name: Install X-Pack Plugin for Kibana   
-  shell: /usr/share/kibana/bin/kibana-plugin install file:///root/x-pack-5.6.14.zip -q
-  args:
-    executable: /bin/bash
-  when: cmd_out.rc != 0  
-  
 - name: Create Elasticsearch Systemd Override Directory
   file:
     path: /etc/systemd/system/elasticsearch.service.d/

@@ -3,4 +3,4 @@
 
 repo_dir: /mnt/local-repo
 elastic_stack_download_url: "https://artifacts.elastic.co/downloads"
-jdkurl: "https://download.oracle.com/otn-pub/java/jdk/8u201-b09/42970487e3af4f5aa5bca3f542482c60/jdk-8u201-linux-x64.rpm"
+jdkurl: "https://download.oracle.com/otn/java/jdk/8u261-b12/a4634525489241b9a9e1aa73d9e118e6/jdk-8u261-linux-x64.rpm"
